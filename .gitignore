@@ -109,3 +109,4 @@ CVS/
 *.sig
 *.tmp
 Backup*
+*.*~
