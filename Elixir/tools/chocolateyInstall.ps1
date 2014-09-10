@@ -1,5 +1,5 @@
 $package = 'Elixir'
-$version = '0.15.1'
+$version = '1.0.0'
 
 try {
   $params = @{
