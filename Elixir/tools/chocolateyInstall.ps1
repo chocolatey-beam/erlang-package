@@ -1,5 +1,5 @@
 $package = 'Elixir'
-$version = '1.0.3'
+$version = '1.0.4'
 
 try {
   $params = @{
@@ -9,7 +9,7 @@ try {
     UnzipLocation = Join-Path $Env:SystemDrive 'tools';
   }
 
-  $binRoot = Join-Path $Env:SystemDrive $Env:Chocolatey_Bin_Root
+  $binRoot = Get-BinRoot
   if (Test-Path $binRoot)
   {
     $params.UnzipLocation = $binRoot
