@@ -1,28 +1,12 @@
 $package = 'Elixir'
 
-try {
-  $location = Join-Path $Env:SystemDrive $Env:Chocolatey_Bin_Root
-  if (!(Test-Path $location))
-  {
-    $location = Join-Path $Env:SystemDrive 'tools'
-  }
-  $location = Join-Path $location $package
+Uninstall-ChocolateyZipPackage $packageName $package $zipFileName 'Precompiled.zip'
 
-  if (Test-Path $location)
-  {
-    Remove-Item $location -Recurse -Force
-  }
+#And insure we remove the shortcuts to the batch files as well
 
-  $binLocation = (Join-Path $location 'bin') -replace '\\', '\\'
+Remove-BinFile "ielixir" -path "$env:ChocolateyPackageFolder/bin/iex.bat"
+Remove-BinFile "elixir"  -path "$env:ChocolateyPackageFolder/bin/elixir.bat"
+Remove-BinFile "elixirc"  -path "$env:ChocolateyPackageFolder/bin/elixirc.bat"
+Remove-BinFile "mix"  -path "$env:ChocolateyPackageFolder/bin/mix.bat"
 
-  $userPaths = [Environment]::GetEnvironmentVariable('Path', 'User') -split ';' |
-    ? { ($_ -notmatch $binLocation) -and (![String]::IsNullOrEmpty($_)) } |
-    Select-Object -Unique
 
-  [Environment]::SetEnvironmentVariable('Path', ($userPaths -join ';'), 'User')
-
-  Write-ChocolateySuccess $package
-} catch {
-  Write-ChocolateyFailure $package "$($_.Exception.Message)"
-  throw
-}

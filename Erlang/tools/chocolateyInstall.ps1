@@ -1,8 +1,10 @@
-﻿try {
-	Install-ChocolateyPackage 'erlang' 'EXE' '/S' 'http://www.erlang.org/download/otp_win32_18.0.exe' 'http://www.erlang.org/download/otp_win64_18.0.exe'  -validExitCodes @(0)
+﻿$package = 'erlang'
+$version = '18.0.20150709'
+$erl_version = '7.0'
 
-  Write-ChocolateySuccess 'Erlang'
-} catch {
-  Write-ChocolateyFailure 'Erlang' $($_.Exception.Message)
-  throw 
-}
+Install-ChocolateyPackage $package 'EXE' '/S' http://www.erlang.org/download/otp_win32_$version.exe http://www.erlang.org/download/otp_win64_$version.exe  -validExitCodes @(0)
+
+
+Generate-BinFile "erl" -path "$env:ProgramFiles/erl$erl_version/erts-$erl_version/bin/erl.exe"
+Generate-BinFile "werl" -path "$env:ProgramFiles/erl$erl_version/erts-$erl_version/bin/werl.exe"
+
