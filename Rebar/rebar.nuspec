@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>rebar3-beta1</id>
+    <title>Rebar3</title>
+    <version>3.0</version>
+    <authors>Fred Hebert, Tristan Sloughter</authors>
+    <owners>Onorio Catenacci</owners>
+    <summary>Erlang build tool.</summary>
+    <description>Rebar is an Erlang build tool that makes it easy to compile and test Erlang applications, port drivers and releases.</description>
+    <projectUrl>http://www.rebar3.org/</projectUrl>
+    <tags>erlang build tools</tags>
+    <copyright>rebar3.org</copyright>
+    <licenseUrl>https://github.com/rebar/rebar3/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <releaseNotes></releaseNotes>
+    <dependencies>
+      <dependency id="Erlang" version="[18.0.20150709.2]"/>
+    </dependencies>
+  </metadata>
+</package>
