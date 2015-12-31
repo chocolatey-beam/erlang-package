@@ -1,6 +1,6 @@
 ﻿$package = 'erlang'
-$version = '18.0'
-$erl_version = '7.0'
+$version = '18.2.1'
+$erl_version = '7.2.1'
 
 Install-ChocolateyPackage $package 'EXE' '/S' http://www.erlang.org/download/otp_win32_$version.exe http://www.erlang.org/download/otp_win64_$version.exe  -validExitCodes @(0)
 
