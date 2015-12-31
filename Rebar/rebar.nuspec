@@ -9,7 +9,7 @@
     <summary>Erlang build tool.</summary>
     <description>Rebar is an Erlang build tool that makes it easy to compile and test Erlang applications, port drivers and releases.</description>
     <projectUrl>http://www.rebar3.org/</projectUrl>
-    <iconUrl>http://www.rebar3.org/</iconUrl>
+    <iconUrl>http://i.imgur.com/9zCiL6W.png</iconUrl>
     <packageSourceUrl>https://github.com/ElixirWin/ChocolateyPackages</packageSourceUrl>
     <docsUrl>http://www.rebar3.org/v3.0/docs</docsUrl>
     <mailingListUrl>http://www.rebar3.org/discuss</mailingListUrl>
