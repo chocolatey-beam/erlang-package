@@ -1,5 +1,5 @@
 $package = 'Elixir'
-$version = '1.1.0-rc.0'
+$version = '1.1.1'
 
 $params = @{
   PackageName = $package;
@@ -15,10 +15,10 @@ if (!(Test-Path($params.UnzipLocation)))
 
 Install-ChocolateyZipPackage @params
 
-Generate-BinFile "iex.bat" -path "$env:ChocolateyPackageFolder/bin/iex.bat"
-Generate-BinFile "elixir"  -path "$env:ChocolateyPackageFolder/bin/elixir.bat"
-Generate-BinFile "elixirc"  -path "$env:ChocolateyPackageFolder/bin/elixirc.bat"
-Generate-BinFile "mix"  -path "$env:ChocolateyPackageFolder/bin/mix.bat"
+Copy-Item "$env:ChocolateyPackageFolder/bin/iex.bat" "$env:ChocolateyInstall/bin/iex.bat"
+Copy-Item "$env:ChocolateyPackageFolder/bin/elixir.bat" "$env:ChocolateyInstall/bin/elixir.bat"
+Copy-Item "$env:ChocolateyPackageFolder/bin/elixirc.bat" "$env:ChocolateyInstall/bin/elixirc.bat"
+Copy-Item "$env:ChocolateyPackageFolder/bin/mix.bat" "$env:ChocolateyInstall/bin/mix.bat"
 
 Write-Host @'
 Please restart your current shell session to access Elixir commands:
@@ -26,6 +26,4 @@ elixir
 elixirc
 mix
 iex.bat
-
-NB: you must type "iex.bat". Simply typing "iex" will not work.
 '@
