@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>rebar3-beta4</id>
+    <id>rebar3</id>
     <title>Rebar3</title>
-    <version>3.0</version>
+    <version>3.0.0-beta4</version>
     <authors>Fred Hebert, Tristan Sloughter</authors>
     <owners>Onorio Catenacci</owners>
     <summary>Erlang build tool.</summary>
