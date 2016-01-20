@@ -1,5 +1,5 @@
 $package = 'Elixir'
-$version = '1.1.1'
+$version = '1.2.1'
 
 $params = @{
   PackageName = $package;
@@ -15,12 +15,14 @@ if (!(Test-Path($params.UnzipLocation)))
 
 Install-ChocolateyZipPackage @params
 
-Copy-Item "$env:ChocolateyPackageFolder/bin/iex.bat" "$env:ChocolateyInstall/bin/iex.bat"
-Copy-Item "$env:ChocolateyPackageFolder/bin/elixir.bat" "$env:ChocolateyInstall/bin/elixir.bat"
-Copy-Item "$env:ChocolateyPackageFolder/bin/elixirc.bat" "$env:ChocolateyInstall/bin/elixirc.bat"
-Copy-Item "$env:ChocolateyPackageFolder/bin/mix.bat" "$env:ChocolateyInstall/bin/mix.bat"
+$elixirPath = "$env:ChocolateyPackageFolder/bin"
+if (![System.IO.Directory]::Exists($elixirPath)) {$elixirPath = "$env:ChocolateyPackageFolder/bin";}
+ 
+$env:Path = "$($env:Path);$elixirPath"
 
 Write-Host @'
+The Elixir commands have been added to your path.
+
 Please restart your current shell session to access Elixir commands:
 elixir
 elixirc
