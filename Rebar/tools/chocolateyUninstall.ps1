@@ -1,5 +1,5 @@
 ﻿$package = 'rebar3'
-$version = 'beta-4'
+$version = '3.0.0'
 
 #Note that this process will _not_ uninstall Erlang.
 #Remove the shim file.

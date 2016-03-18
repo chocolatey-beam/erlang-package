@@ -1,9 +1,9 @@
 @echo off
 @call :find_erts_dir
 
-@set rebar_ver=Rebar3-beta4.3.0
+@set rebar_cng_dir=Rebar3
 @set base_cng_dir=/ProgramData/Chocolatey/Lib
-@set rebar_escript_path=%base_cng_dir%/%rebar_ver%
+@set rebar_escript_path=%base_cng_dir%/%rebar_cng_dir%
 for %%r in ("%rebar_escript_path%") do @(set rebar_escript_path=%%~sr)
 
 @%erts_bin_dir%/escript.exe %rebar_escript_path%/rebar3 %*
