@@ -1,5 +1,5 @@
 $package = 'Elixir'
-$version = '1.2.3'
+$version = '1.2.4'
 
 $params = @{
   PackageName = $package;
@@ -18,7 +18,7 @@ Install-ChocolateyZipPackage @params
 $elixirPath = "$env:ChocolateyPackageFolder/bin"
 if (![System.IO.Directory]::Exists($elixirPath)) {$elixirPath = "$env:ChocolateyPackageFolder/bin";}
  
-Install-ChocolateyEnvironmentVariable "Path" "$($env:Path);$elixirPath"
+Install-ChocolateyEnvironmentVariable "Path" "$($env:Path);$elixirPath" Machine
 Update-SessionEnvironment
 
 Write-Host @'
