@@ -14,7 +14,7 @@ Elixir also provides first-class support for pattern matching, polymorphism via 
 Finally, Elixir and Erlang share the same bytecode and data types. This means you can invoke Erlang code from Elixir (and vice-versa) without any conversion or performance hit. This allows a developer to mix the expressiveness of Elixir with the robustness and performance of Erlang.</description>
     <releaseNotes>https://github.com/elixir-lang/elixir/releases/</releaseNotes>
     <projectUrl>http://elixir-lang.org/</projectUrl>
-    <tags>erlang concurrent programming language sdk otp elixir ruby</tags>
+    <tags>admin erlang concurrent programming language sdk otp elixir ruby</tags>
     <packageSourceUrl>https://github.com/ElixirWin/ChocolateyPackages</packageSourceUrl>
     <docsUrl>http://elixir-lang.org/docs.html</docsUrl>
     <mailingListUrl>https://groups.google.com/forum/?hl=en#!forum/elixir-lang-talk</mailingListUrl>
