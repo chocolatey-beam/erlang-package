@@ -5,6 +5,7 @@ $params = @{
   PackageName = $package;
   FileType = 'zip';
   Url = "https://github.com/elixir-lang/elixir/releases/download/v$version/Precompiled.zip";
+  CheckSum = 38194FC33768AE9B022F8437162F3692
   UnzipLocation = $env:chocolateyPackageFolder;
 }
 
