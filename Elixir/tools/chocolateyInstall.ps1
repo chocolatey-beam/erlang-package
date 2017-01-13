@@ -16,10 +16,11 @@ if (!(Test-Path($params.UnzipLocation)))
 
 Install-ChocolateyZipPackage @params
 
-$elixirPath = "$env:ChocolateyPackageFolder/bin"
-if (![System.IO.Directory]::Exists($elixirPath)) {$elixirPath = "$env:ChocolateyPackageFolder/bin";}
- 
-Install-ChocolateyEnvironmentVariable "Path" "$($env:Path);$elixirPath" Machine
+$elixirPath = "$env:ChocolateyPackageFolder\bin"
+if (![System.IO.Directory]::Exists($elixirPath)) {$elixirPath = "$env:ChocolateyPackageFolder\bin";}
+
+$machine_path = [Environment]::GetEnvironmentVariable('Path', 'Machine') 
+Install-ChocolateyEnvironmentVariable "Path" "$($machine_path);$elixirPath" Machine
 Update-SessionEnvironment
 
 Write-Host @'
