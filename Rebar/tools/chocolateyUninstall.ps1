@@ -1,6 +1,7 @@
 ﻿$package = 'rebar3'
-$version = '3.2.0'
+$version = '3.3.5'
 
 #Note that this process will _not_ uninstall Erlang.
 #Remove the shim file.
-Remove-BinFile "rebar3" -path "$env:chocolateyPackageFolder/rebar3.cmd"
+$toolsDir = $(Split-Path -Parent $MyInvocation.MyCommand.Definition)
+Remove-BinFile "rebar3" -path "$toolsDir/rebar3.cmd"
