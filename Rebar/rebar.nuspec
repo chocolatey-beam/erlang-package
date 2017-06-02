@@ -3,7 +3,7 @@
   <metadata>
     <id>rebar3</id>
     <title>Rebar3</title>
-    <version>3.3.5</version>
+    <version>3.4.1</version>
     <authors>Fred Hebert, Tristan Sloughter</authors>
     <owners>Onorio Catenacci</owners>
     <summary>Erlang build tool.</summary>
