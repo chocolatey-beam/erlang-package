@@ -3,7 +3,7 @@
   <metadata>
     <id>erlang</id>
     <title>Erlang</title>
-    <version>19.3</version>
+    <version>20.0</version>
     <authors>Joe Armstrong,Robert Virding,Mike Williams</authors>
     <owners>Onorio Catenacci</owners>
     <summary>Erlang/OTP - for building concurrent, distributed, and fault tolerant systems</summary>
@@ -16,6 +16,11 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>https://github.com/smerchek/nugetpackages/raw/master/Erlang/erlang-logo.png</iconUrl>
-    <releaseNotes></releaseNotes>
+    <packageSourceUrl>https://github.com/ElixirWin/ChocolateyPackages/tree/master/Erlang</packageSourceUrl>
+    <releaseNotes>http://erlang.org/download/otp_src_20.0.readme</releaseNotes>
+    <docsUrl>http://www.erlang.org/documentation/doc-9.0-rc2/doc/</docsUrl>
+    <mailingListUrl>http://erlang.org/mailman/listinfo/erlang-questions</mailingListUrl>
+    <bugTrackerUrl>https://bugs.erlang.org/secure/Dashboard.jspa</bugTrackerUrl>
+    <projectSourceUrl>https://github.com/erlang/otp</projectSourceUrl>
   </metadata>
 </package>
