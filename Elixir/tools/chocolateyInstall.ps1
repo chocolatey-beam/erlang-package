@@ -1,10 +1,10 @@
 $package = 'Elixir'
  
-$version = '1.5.0'
+$version = '1.5.1'
 $params = @{
   PackageName = $package
   FileType = 'zip'
-  CheckSum = '01841d8f973e10ea2e8e29342193063efb5ebe2c598c21dc8a3b93ec8428466a'
+  CheckSum = '84af6eb4cb68d0f60b3edf4e275eb024f8eb8cccae91b18c2bbbc4b70a88934f'
   CheckSumType = 'sha256'
   Url = "https://github.com/elixir-lang/elixir/releases/download/v$version/Precompiled.zip"
  

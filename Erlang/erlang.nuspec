@@ -11,7 +11,7 @@
 OTP is set of Erlang libraries and design principles providing middle-ware to develop these systems. It includes its own distributed database, applications to interface towards other languages, debugging and release handling tools.
     </description>
     <projectUrl>http://www.erlang.org/</projectUrl>
-    <tags>erlang languages admin</tags>
+    <tags>erlang languages</tags>
     <copyright>erlang.org</copyright>
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>

@@ -19,7 +19,7 @@ $params = @{
   CheckSum = 'b92f326d8988b0a98c654ffe9bceccf5b7d0baffe6ec224bc8e4cfdc0e53fd8f' 
   CheckSumType = 'sha256'
   Url64 = "http://www.erlang.org/download/otp_win64_$version.exe"
-  CheckSum64 = '60dc4b43b18271e90bb09e96164dab78e7205e698401010f23f135b2f64ee564'
+  CheckSum64 = '6e39854cc00941bf68d8098846d91db6a48c1835a5ebab89728214275d2ac70c'
   CheckSumType64 = 'sha256'
   validExitCodes = @(0)
 }
