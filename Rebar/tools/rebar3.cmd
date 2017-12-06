@@ -6,7 +6,7 @@
 @set rebar_escript_path=%base_cng_dir%/%rebar_cng_dir%
 for %%r in ("%rebar_escript_path%") do @(set rebar_escript_path=%%~sr)
 
-@%erts_bin_dir%/escript.exe %rebar_escript_path%/rebar3 %*
+@%erts_bin_dir%/escript.exe %rebar_escript_path%/tools/rebar3 %*
 @goto :eof
 
 :: Find the ERTS dir
