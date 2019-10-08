@@ -1,8 +1,8 @@
 ﻿$package = 'erlang'
-$version = '20.2'
-$erl_version = '9.2'
+$version = '21.2'
+$erl_version = '10.2'
 
-start-process -wait "C:\Program Files\erl$erl_version\uninstall.exe"
+start-process -wait "C:\Program Files\erl$erl_version\uninstall.exe /S"
 
 #And remove the shim files as well.
 $baseErlangPath = "$env:ProgramFiles/erl$erl_version/erts-$erl_version/bin"
