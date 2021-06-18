@@ -1,6 +1,6 @@
 ﻿$package = 'erlang'
-$version = '21.2'
-$erl_version = '10.2'
+$version = '23.3'
+$erl_version = '11.2'
 
 start-process -wait "C:\Program Files\erl$erl_version\uninstall.exe /S"
 
