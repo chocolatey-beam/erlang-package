@@ -3,7 +3,7 @@
   <metadata>
     <id>erlang</id>
     <title>Erlang</title>
-    <version>24.0</version>
+    <version>25.2</version>
     <authors>Joe Armstrong,Robert Virding,Mike Williams</authors>
     <owners>Luke Bakken, Team RabbitMQ</owners>
     <summary>Erlang/OTP - for building concurrent, distributed, and fault tolerant systems</summary>
@@ -15,12 +15,12 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <copyright>erlang.org</copyright>
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <iconUrl>https://raw.githubusercontent.com/chocolatey-beam/erlang-package/main/Erlang/erlang-logo.png</iconUrl>
-    <packageSourceUrl>https://github.com/ElixirWin/ChocolateyPackages/tree/master/Erlang</packageSourceUrl>
-    <releaseNotes>https://erlang.org/download/OTP-24.0.README</releaseNotes>
+    <iconUrl>https://raw.githubusercontent.com/chocolatey-beam/erlang-package/main/erlang-logo.png</iconUrl>
+    <packageSourceUrl>https://github.com/chocolatey-beam/erlang-package</packageSourceUrl>
+    <releaseNotes>https://github.com/erlang/otp/releases/download/OTP-25.2/OTP-25.2.README</releaseNotes>
     <docsUrl>http://erlang.org/doc/search/</docsUrl>
-    <mailingListUrl>http://erlang.org/mailman/listinfo/erlang-questions</mailingListUrl>
-    <bugTrackerUrl>https://bugs.erlang.org/secure/Dashboard.jspa</bugTrackerUrl>
+    <mailingListUrl>https://erlangforums.com</mailingListUrl>
+    <bugTrackerUrl>https://github.com/erlang/otp/issues</bugTrackerUrl>
     <projectSourceUrl>https://github.com/erlang/otp</projectSourceUrl>
   </metadata>
 </package>
