@@ -11,16 +11,19 @@
 OTP is set of Erlang libraries and design principles providing middle-ware to develop these systems. It includes its own distributed database, applications to interface towards other languages, debugging and release handling tools.
     </description>
     <projectUrl>http://www.erlang.org/</projectUrl>
+    <projectSourceUrl>https://github.com/erlang/otp</projectSourceUrl>
+    <packageSourceUrl>https://github.com/chocolatey-beam/erlang-package</packageSourceUrl>
+    <releaseNotes>https://github.com/erlang/otp/releases/download/OTP-25.2/OTP-25.2.README</releaseNotes>
     <tags>erlang languages</tags>
     <copyright>erlang.org</copyright>
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>https://raw.githubusercontent.com/chocolatey-beam/erlang-package/main/erlang-logo.png</iconUrl>
-    <packageSourceUrl>https://github.com/chocolatey-beam/erlang-package</packageSourceUrl>
-    <releaseNotes>https://github.com/erlang/otp/releases/download/OTP-25.2/OTP-25.2.README</releaseNotes>
     <docsUrl>http://erlang.org/doc/search/</docsUrl>
     <mailingListUrl>https://erlangforums.com</mailingListUrl>
     <bugTrackerUrl>https://github.com/erlang/otp/issues</bugTrackerUrl>
-    <projectSourceUrl>https://github.com/erlang/otp</projectSourceUrl>
   </metadata>
+  <files>
+      <file src="tools\*" target="tools" exclude=".*" />
+  </files>
 </package>

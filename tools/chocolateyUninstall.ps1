@@ -12,7 +12,7 @@ New-Variable -Name otp_version -Value '25.2' -Option Constant
 New-Variable -Name erts_version -Value '13.1.3' -Option Constant
 
 New-Variable -Name erlangProgramFilesPath -Option Constant `
-    -Value ((Get-ItemProperty -Path HKCU:\Software\Ericsson\Erlang\$erts_version).'(default)')
+    -Value ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
 
 Start-Process -Wait -FilePath (Join-Path -Path $erlangProgramFilesPath -ChildPath 'uninstall.exe') -ArgumentList '/S'
 

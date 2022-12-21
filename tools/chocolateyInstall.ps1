@@ -26,8 +26,8 @@ $params = @{
 
 Install-ChocolateyPackage @params
 
-New-Variable -Name erlangProgramFilesPath -Option Constant`
-    -Value ((Get-ItemProperty -Path HKCU:\Software\Ericsson\Erlang\$erts_version).'(default)')
+New-Variable -Name erlangProgramFilesPath -Option Constant `
+    -Value ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
 
 New-Variable -Name erlangErtsBinPath -Option Constant `
     -Value (Join-Path -Path $erlangProgramFilesPath -ChildPath "erts-$erts_version" | Join-Path -ChildPath 'bin')
