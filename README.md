@@ -1,4 +1,4 @@
-ChocolateyPackages
-==================
+# Chocolatey Package for Erlang
+===============================
 
-Chocolatey Install Packages
+https://community.chocolatey.org/packages/erlang
