@@ -84,18 +84,46 @@ New-Variable -Name win64_installer_exe_sha256 -Option Constant `
 Write-Host "[INFO] win32 installer sha256: $win32_installer_exe_sha256"
 Write-Host "[INFO] win64 installer sha256: $win64_installer_exe_sha256"
 
+# install
 Write-Host "[INFO] installing Erlang..."
 Start-Process -Wait -FilePath $win64_installer_exe -ArgumentList '/S'
 Write-Host "[INFO] installation complete!"
 
 New-Variable -Name erts_version -Option Constant `
     -Value (Get-ChildItem HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang | Select-Object -Last 1).PSChildName
-
 Write-Host "[INFO] erts_version: $erts_version"
+
+New-Variable -Name erlangProgramFilesPath -Option Constant `
+    -Value ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
+Write-Host "[INFO] erlangProgramFilesPath: $erlangProgramFilesPath"
+
+New-Variable -Name erl_exe -Option Constant `
+    -Value (Join-Path -Path $erlangProgramFilesPath -ChildPath 'bin' | Join-Path -ChildPath 'erl.exe')
+Write-Host "[INFO] erl_exe: $erl_exe"
+
+# run a check
+& $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().'
+try
+{
+    if ($LASTEXITCODE -eq 0)
+    {
+        Write-Host "[INFO] erl.exe check succeeded."
+    }
+    else
+    {
+        throw "[ERROR] erl.exe check failed!"
+    }
+}
+finally
+{
+# uninstall
+    Write-Host "[INFO] UN-installing Erlang..."
+    Start-Process -Wait -FilePath (Join-Path -Path $erlangProgramFilesPath -ChildPath 'uninstall.exe') -ArgumentList '/S'
+    Write-Host "[INFO] uninstallation complete!"
+}
 
 (Get-Content -Raw -Path erlang.nuspec.in).Replace('@@OTP_VERSION@@', $otp_version) | Set-Content erlang.nuspec
 
-# install
 New-Variable -Name chocolateyInstallPs1In -Option Constant `
     -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyInstall.ps1.in')
 
@@ -104,7 +132,6 @@ New-Variable -Name chocolateyInstallPs1 -Option Constant `
 
 (Get-Content -Raw -Path $chocolateyInstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version).Replace('@@WIN32_SHA256@@', $win32_installer_exe_sha256).Replace('@@WIN64_SHA256@@', $win64_installer_exe_sha256) | Set-Content $chocolateyInstallPs1
 
-# uninstall
 New-Variable -Name chocolateyUninstallPs1In -Option Constant `
     -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyUninstall.ps1.in')
 
@@ -112,12 +139,5 @@ New-Variable -Name chocolateyUninstallPs1 -Option Constant `
     -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyUninstall.ps1')
 
 (Get-Content -Raw -Path $chocolateyUninstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version) | Set-Content $chocolateyUninstallPs1
-
-New-Variable -Name erlangProgramFilesPath -Option Constant `
-    -Value ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
-
-Write-Host "[INFO] UN-installing Erlang..."
-Start-Process -Wait -FilePath (Join-Path -Path $erlangProgramFilesPath -ChildPath 'uninstall.exe') -ArgumentList '/S'
-Write-Host "[INFO] uninstallation complete!"
 
 Set-PSDebug -Off
