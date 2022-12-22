@@ -1,3 +1,14 @@
+param(
+    [switch]$PackAndTest = $false,
+    [switch]$Push = $false
+)
+
+if ($Push)
+{
+    $PackAndTest = $true
+    Write-Host "[INFO] PACKAGE WILL BE TESTED AND PUSHED"
+}
+
 $DebugPreference = "Continue"
 $ErrorActionPreference = 'Stop'
 # Set-PSDebug -Strict -Trace 1
@@ -5,7 +16,6 @@ Set-PSDebug -Off
 Set-StrictMode -Version 'Latest' -ErrorAction 'Stop' -Verbose
 
 New-Variable -Name curdir  -Option Constant -Value $PSScriptRoot
-
 Write-Host "[INFO] curdir: $curdir"
 
 try
@@ -122,7 +132,6 @@ try
 }
 finally
 {
-# uninstall
     Write-Host "[INFO] UN-installing Erlang..."
     Start-Process -Wait -FilePath (Join-Path -Path $erlangProgramFilesPath -ChildPath 'uninstall.exe') -ArgumentList '/S'
     Write-Host "[INFO] uninstallation complete!"
@@ -145,5 +154,70 @@ New-Variable -Name chocolateyUninstallPs1 -Option Constant `
     -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyUninstall.ps1')
 
 (Get-Content -Raw -Path $chocolateyUninstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version) | Set-Content $chocolateyUninstallPs1
+
+if ($PackAndTest)
+{
+    & choco pack
+    if ($LASTEXITCODE -eq 0)
+    {
+        Write-Host "[INFO] 'choco pack' succeeded."
+    }
+    else
+    {
+        throw "[ERROR] 'choco pack' failed!"
+    }
+
+    & choco install erlang --verbose --debug --yes --source ".;https://chocolatey.org/api/v2/"
+    if ($LASTEXITCODE -eq 0)
+    {
+        Write-Host "[INFO] 'choco install' succeeded."
+    }
+    else
+    {
+        throw "[ERROR] 'choco install' failed!"
+    }
+
+    & $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().'
+    try
+    {
+        if ($LASTEXITCODE -eq 0)
+        {
+            Write-Host "[INFO] erl.exe check succeeded."
+        }
+        else
+        {
+            throw "[ERROR] erl.exe check failed!"
+        }
+    }
+    finally
+    {
+        Write-Host "[INFO] choco un-installing Erlang..."
+        & choco uninstall erlang --verbose --debug --yes --source ".;https://chocolatey.org/api/v2/"
+        Write-Host "[INFO] uninstallation complete!"
+    }
+}
+
+if ($Push)
+{
+    & choco apikey --yes --key $env:CHOCOLATEY_API_KEY --source https://push.chocolatey.org/
+    if ($LASTEXITCODE -eq 0)
+    {
+        Write-Host "[INFO] 'choco apikey' succeeded."
+    }
+    else
+    {
+        throw "[ERROR] 'choco apikey' failed!"
+    }
+
+    & choco push erlang.$otp_version.nupkg --source https://push.chocolatey.org
+    if ($LASTEXITCODE -eq 0)
+    {
+        Write-Host "[INFO] 'choco push' succeeded."
+    }
+    else
+    {
+        throw "[ERROR] 'choco push' failed!"
+    }
+}
 
 Set-PSDebug -Off
