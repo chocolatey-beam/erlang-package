@@ -1,3 +1,6 @@
 [Pp]ackages/
+tools/chocolateyInstall.ps1
+tools/chocolateyUninstall.ps1
+erlang.nuspec
 *.nupkg
 *.exe

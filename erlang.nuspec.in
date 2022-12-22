@@ -3,7 +3,7 @@
   <metadata>
     <id>erlang</id>
     <title>Erlang</title>
-    <version>@@VERSION@@</version>
+    <version>@@OTP_VERSION@@</version>
     <authors>Joe Armstrong,Robert Virding,Mike Williams</authors>
     <owners>Luke Bakken, Team RabbitMQ</owners>
     <summary>Erlang/OTP - for building concurrent, distributed, and fault tolerant systems</summary>
@@ -13,7 +13,7 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <projectUrl>http://www.erlang.org/</projectUrl>
     <projectSourceUrl>https://github.com/erlang/otp</projectSourceUrl>
     <packageSourceUrl>https://github.com/chocolatey-beam/erlang-package</packageSourceUrl>
-    <releaseNotes>https://github.com/erlang/otp/releases/download/OTP-@@VERSION@@/OTP-@@VERSION@@.README</releaseNotes>
+    <releaseNotes>https://github.com/erlang/otp/releases/download/OTP-@@OTP_VERSION@@/OTP-@@OTP_VERSION@@.README</releaseNotes>
     <tags>erlang languages</tags>
     <copyright>erlang.org</copyright>
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
@@ -24,6 +24,8 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <bugTrackerUrl>https://github.com/erlang/otp/issues</bugTrackerUrl>
   </metadata>
   <files>
-      <file src="tools\*" target="tools" exclude=".*" />
+      <file src="tools\chocolateyInstall.ps1" target="tools" />
+      <file src="tools\chocolateyUninstall.ps1" target="tools" />
+      <file src="tools\.skipAutoUninstall" target="tools" />
   </files>
 </package>
