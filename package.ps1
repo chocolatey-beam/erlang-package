@@ -37,6 +37,7 @@ $jobs = @()
 
 if (!(Test-Path -Path $win32_installer_exe))
 {
+    Write-Host "[INFO] downloading from " $win32_installer_asset.browser_download_url
     $files += @{
         Uri = $win32_installer_asset.browser_download_url
         OutFile = $win32_installer_exe
@@ -44,6 +45,7 @@ if (!(Test-Path -Path $win32_installer_exe))
 }
 if (!(Test-Path -Path $win64_installer_exe))
 {
+    Write-Host "[INFO] downloading from " $win64_installer_asset.browser_download_url
     $files += @{
         Uri = $win64_installer_asset.browser_download_url
         OutFile = $win64_installer_exe
@@ -60,7 +62,7 @@ try
         }
     }
 
-    if ($jobs.Length > 0)
+    if ($jobs.Count -gt 0)
     {
         Write-Host "[INFO] Downloads started..."
         Wait-Job -Job $jobs
@@ -69,6 +71,10 @@ try
             Receive-Job -Job $job
         }
         Write-Host "[INFO] Downloads complete!"
+    }
+    else
+    {
+        Write-Host "[INFO] nothing to download!"
     }
 }
 finally
