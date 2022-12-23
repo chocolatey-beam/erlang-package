@@ -15,7 +15,7 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <packageSourceUrl>https://github.com/chocolatey-beam/erlang-package</packageSourceUrl>
     <releaseNotes>https://github.com/erlang/otp/releases/download/OTP-@@OTP_VERSION@@/OTP-@@OTP_VERSION@@.README</releaseNotes>
     <tags>erlang languages</tags>
-    <copyright>erlang.org</copyright>
+    <copyright>https://www.erlang.org/EPLICENSE</copyright>
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>https://raw.githubusercontent.com/chocolatey-beam/erlang-package/main/erlang-icon.png</iconUrl>
@@ -24,8 +24,8 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <bugTrackerUrl>https://github.com/erlang/otp/issues</bugTrackerUrl>
   </metadata>
   <files>
-      <file src="tools\chocolateyInstall.ps1" target="tools" />
-      <file src="tools\chocolateyUninstall.ps1" target="tools" />
-      <file src="tools\.skipAutoUninstall" target="tools" />
+    <file src="tools\chocolateyInstall.ps1" target="tools" />
+    <file src="tools\chocolateyUninstall.ps1" target="tools" />
+    <file src="tools\.skipAutoUninstall" target="tools" />
   </files>
 </package>
