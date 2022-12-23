@@ -18,7 +18,7 @@ OTP is set of Erlang libraries and design principles providing middle-ware to de
     <copyright>erlang.org</copyright>
     <licenseUrl>http://www.erlang.org/EPLICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <iconUrl>https://raw.githubusercontent.com/chocolatey-beam/erlang-package/main/erlang-logo.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/chocolatey-beam/erlang-package/main/erlang-icon.png</iconUrl>
     <docsUrl>http://erlang.org/doc/search/</docsUrl>
     <mailingListUrl>https://erlangforums.com</mailingListUrl>
     <bugTrackerUrl>https://github.com/erlang/otp/issues</bugTrackerUrl>
