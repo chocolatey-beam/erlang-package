@@ -13,23 +13,14 @@ Open PowerShell in Administrator mode and navigate to the `erlang-package` repos
 Run
 
 ```
-choco pack
+.\package.ps1 -PackAndTest
 ```
 
-To test, copy the generated `erlang.*.nupkg` file to a VM and run the following to install:
+When satisfied, run the following to push the package:
 
 ```
-choco install erlang -dv -source ".;https://chocolatey.org/api/v2/"
-```
-
-You should see Erlang installed to `C:\Program Files\Erlang OTP`
-
-When satisfied, back on the original machine, run the following to set your API key and push the package:
-
-```
-choco apikey --key <ApiKey> --source https://push.chocolatey.org/
-choco push erlang.[MAJOR].[MINOR].[PATCH].nupkg --source https://push.chocolatey.org/
+.\package.ps1 -ApiKey <ApiKey> -Push
 
 ```
 
-The ApiKey can be found in the account settings on https://chocolatey.org (credentials in lastpass).
+The ApiKey can be found in your account settings at https://community.chocolatey.org/users/account/LogOn

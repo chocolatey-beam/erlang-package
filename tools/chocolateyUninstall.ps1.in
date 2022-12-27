@@ -4,7 +4,7 @@ An uninstall script for Erlang
 
 .NOTES
 Author: Luke Bakken - luke@bakken.io
-Version: 25.2
+Version: 1.0.0
 #>
 
 New-Variable -Name package -Value 'erlang' -Option Constant

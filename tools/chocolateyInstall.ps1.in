@@ -4,8 +4,9 @@ An install script for installing Erlang silently on the machine via ChocolateyNu
 
 .NOTES
 Author: Luke Bakken - luke@bakken.io
-Version: 25.2
+Version: 1.0.0
 #>
+$ErrorActionPreference = 'Stop'
 
 New-Variable -Name package -Value 'erlang' -Option Constant
 New-Variable -Name otp_version -Value '@@OTP_VERSION@@' -Option Constant

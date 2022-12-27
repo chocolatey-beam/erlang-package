@@ -1,6 +1,9 @@
 param(
     [switch]$PackAndTest = $false,
-    [switch]$Push = $false
+    [switch]$Push = $false,
+    [switch]$Debug = $false,
+    [switch]$Verbose = $false,
+    [string]$ApiKey = $null
 )
 
 if ($Push)
@@ -18,19 +21,40 @@ Set-StrictMode -Version 'Latest' -ErrorAction 'Stop' -Verbose
 New-Variable -Name curdir  -Option Constant -Value $PSScriptRoot
 Write-Host "[INFO] curdir: $curdir"
 
+if ($Debug)
+{
+    New-Variable -Name arg_debug  -Option Constant -Value '--debug'
+}
+else
+{
+    New-Variable -Name arg_debug  -Option Constant -Value ''
+}
+
+if ($Verbose)
+{
+    New-Variable -Name arg_verbose  -Option Constant -Value '--verbose'
+}
+else
+{
+    New-Variable -Name arg_verbose  -Option Constant -Value ''
+}
+
 try
 {
-    $ProgressPreference = 'SilentlyContinue'
-    New-Variable -Name ej -Option Constant `
-        -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/releases/latest | ConvertFrom-Json)
+  $ProgressPreference = 'SilentlyContinue'
+  New-Variable -Name erlang_tags -Option Constant `
+    -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
 }
 finally
 {
-    $ProgressPreference = 'Continue'
+  $ProgressPreference = 'Continue'
 }
 
+New-Variable -Name latest_erlang_tag -Option Constant `
+  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-2[56789]' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
+
 New-Variable -Name otp_version -Option Constant `
-    -Value ($ej.tag_name -replace '^OTP-', '')
+  -Value ($latest_erlang_tag.name -replace '^OTP-','')
 
 Write-Host "[INFO] otp_version: $otp_version"
 
@@ -167,7 +191,7 @@ if ($PackAndTest)
         throw "[ERROR] 'choco pack' failed!"
     }
 
-    & choco install erlang --verbose --debug --yes --source ".;https://chocolatey.org/api/v2/"
+    & choco install erlang $arg_debug $arg_verbose --yes --source ".;https://chocolatey.org/api/v2/"
     if ($LASTEXITCODE -eq 0)
     {
         Write-Host "[INFO] 'choco install' succeeded."
@@ -192,14 +216,14 @@ if ($PackAndTest)
     finally
     {
         Write-Host "[INFO] choco un-installing Erlang..."
-        & choco uninstall erlang --verbose --debug --yes --source ".;https://chocolatey.org/api/v2/"
+        & choco uninstall erlang $arg_debug $arg_verbose --yes --source ".;https://chocolatey.org/api/v2/"
         Write-Host "[INFO] uninstallation complete!"
     }
 }
 
 if ($Push)
 {
-    & choco apikey --yes --key $env:CHOCOLATEY_API_KEY --source https://push.chocolatey.org/
+    & choco apikey --yes --key $ApiKey --source https://push.chocolatey.org/
     if ($LASTEXITCODE -eq 0)
     {
         Write-Host "[INFO] 'choco apikey' succeeded."
