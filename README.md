@@ -4,11 +4,7 @@ https://community.chocolatey.org/packages/erlang
 
 # Release
 
-After a new Erlang release clone the
-[`chocolatey-beam/erlang-package`](https://github.com/chocolatey-beam/erlang-package)
-repository and replace all instances of the previous version with the current.
-
-Open PowerShell in Administrator mode and navigate to the `erlang-package` repository.
+Open PowerShell in Administrator mode and navigate to the clone of the  `chocolatey-beam/erlang-package` repository.
 
 Run
 
