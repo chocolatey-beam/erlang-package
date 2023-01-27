@@ -53,15 +53,30 @@ finally
 New-Variable -Name latest_erlang_tag -Option Constant `
   -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-2[56789]' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
 
-New-Variable -Name otp_version -Option Constant `
-  -Value ($latest_erlang_tag.name -replace '^OTP-','')
+New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
 
-Write-Host "[INFO] otp_version: $otp_version"
+New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-','')
+
+Write-Host "[INFO] otp_version: $otp_version, latest tag:" $latest_erlang_tag_name
+
+New-Variable -Name erlang_release_uri -Option Constant `
+  -Value ("https://api.github.com/repos/erlang/otp/releases/tags/" + $latest_erlang_tag.name)
+
+try
+{
+  $ProgressPreference = 'SilentlyContinue'
+  New-Variable -Name erlang_json -Option Constant `
+    -Value (Invoke-WebRequest -Uri $erlang_release_uri | ConvertFrom-Json)
+}
+finally
+{
+  $ProgressPreference = 'Continue'
+}
 
 New-Variable -Name win32_installer_asset  -Option Constant `
-    -Value ($ej.assets | Where-Object { $_.name -match '^otp_win32_[0-9.]+\.exe$' })
+    -Value ($erlang_json.assets | Where-Object { $_.name -match '^otp_win32_[0-9.]+\.exe$' })
 New-Variable -Name win64_installer_asset  -Option Constant `
-    -Value ($ej.assets | Where-Object { $_.name -match '^otp_win64_[0-9.]+\.exe$' })
+    -Value ($erlang_json.assets | Where-Object { $_.name -match '^otp_win64_[0-9.]+\.exe$' })
 
 New-Variable -Name win32_installer_exe -Option Constant -Value $win32_installer_asset.name
 New-Variable -Name win64_installer_exe -Option Constant -Value $win64_installer_asset.name
