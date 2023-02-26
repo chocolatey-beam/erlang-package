@@ -51,7 +51,7 @@ finally
 }
 
 New-Variable -Name latest_erlang_tag -Option Constant `
-  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-2[56789]' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
+  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-25' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
 
 New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
 
