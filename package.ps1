@@ -51,7 +51,7 @@ finally
 }
 
 New-Variable -Name latest_erlang_tag -Option Constant `
-  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-25' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
+  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-2[56]\.[0-9]\.[0-9](\.[0-9])?' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
 
 New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
 
@@ -206,7 +206,7 @@ if ($PackAndTest)
         throw "[ERROR] 'choco pack' failed!"
     }
 
-    & choco install erlang $arg_debug $arg_verbose --yes --source ".;https://chocolatey.org/api/v2/"
+    & choco install erlang $arg_debug $arg_verbose --yes --skip-virus-check --source ".;https://chocolatey.org/api/v2/"
     if ($LASTEXITCODE -eq 0)
     {
         Write-Host "[INFO] 'choco install' succeeded."
