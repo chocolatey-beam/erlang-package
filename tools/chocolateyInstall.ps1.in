@@ -8,9 +8,9 @@ Version: 1.0.0
 #>
 $ErrorActionPreference = 'Stop'
 
-New-Variable -Name package -Value 'erlang' -Option Constant
-New-Variable -Name otp_version -Value '@@OTP_VERSION@@' -Option Constant
-New-Variable -Name erts_version -Value '@@ERTS_VERSION@@' -Option Constant
+$package = 'erlang'
+$otp_version = '@@OTP_VERSION@@'
+$erts_version = '@@ERTS_VERSION@@'
 
 $params = @{
   PackageName = $package
@@ -27,11 +27,8 @@ $params = @{
 
 Install-ChocolateyPackage @params
 
-New-Variable -Name erlangProgramFilesPath -Option Constant `
-    -Value ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
-
-New-Variable -Name erlangErtsBinPath -Option Constant `
-    -Value (Join-Path -Path $erlangProgramFilesPath -ChildPath "erts-$erts_version" | Join-Path -ChildPath 'bin')
+$erlangProgramFilesPath = ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
+$erlangErtsBinPath = (Join-Path -Path $erlangProgramFilesPath -ChildPath "erts-$erts_version" | Join-Path -ChildPath 'bin')
 
 Install-BinFile -Name 'ct_run'   -Path (Join-Path -Path $erlangErtsBinPath -ChildPath 'ct_run.exe')
 Install-BinFile -Name 'erl'      -Path (Join-Path -Path $erlangErtsBinPath -ChildPath 'erl.exe')
