@@ -15,43 +15,29 @@ Build and test the package locally without pushing.
 .PARAMETER Push
 Test the package installation locally and push to chocolatey.org.
 
-.PARAMETER Debug
-Pass --debug flag to choco commands for verbose output.
-
-.PARAMETER Verbose
-Pass --verbose flag to choco commands for detailed logging.
-
-.PARAMETER ApiKey
-Chocolatey API key for publishing. Required when using -Push.
-
-.PARAMETER Version
-Specific OTP version to build (e.g., "27.3.4"). If not provided, automatically
-detects the latest OTP-28.x version from GitHub.
-
 .PARAMETER SkipTest
 Skip installation testing. Packages are built and pushed without local testing.
 Useful for batch processing where Erlang installers are known to be reliable.
 
 .EXAMPLE
-.\package.ps1
-Downloads installers for latest OTP-28.x and generates package files
+.\package.ps1 -Version "28.1.1"
+Downloads installers for version 28.1.1 and generates package files
 
 .EXAMPLE
-.\package.ps1 -Version "27.3.4" -PackAndTest
-Builds and tests package for version 27.3.4
+.\package.ps1 -Version "27.3.4" -PackAndTest -Verbose
+Builds and tests package for version 27.3.4 with verbose choco output
 
 .EXAMPLE
 .\package.ps1 -Version "26.2.5" -Push -ApiKey "your-api-key" -SkipTest
 Builds and publishes version 26.2.5 without testing
 #>
-
+[CmdletBinding()]
 param(
+    [Parameter(Mandatory = $true)]
+    [string]$Version,
     [switch]$PackAndTest = $false,
     [switch]$Push = $false,
-    [switch]$Debug = $false,
-    [switch]$Verbose = $false,
     [string]$ApiKey = $null,
-    [string]$Version,
     [switch]$SkipTest = $false
 )
 
@@ -108,7 +94,8 @@ function Invoke-CommandWithCheck
 New-Variable -Name curdir  -Option Constant -Value $PSScriptRoot
 Write-Information "[INFO] curdir: $curdir"
 
-if ($Debug)
+# Set choco arguments based on preference variables
+if ($DebugPreference -eq 'Continue')
 {
     New-Variable -Name arg_debug  -Option Constant -Value '--debug'
 }
@@ -117,7 +104,7 @@ else
     New-Variable -Name arg_debug  -Option Constant -Value ''
 }
 
-if ($Verbose)
+if ($VerbosePreference -eq 'Continue')
 {
     New-Variable -Name arg_verbose  -Option Constant -Value '--verbose'
 }
@@ -126,44 +113,24 @@ else
     New-Variable -Name arg_verbose  -Option Constant -Value ''
 }
 
-if ($Version)
-{
-    # Use provided version
-    New-Variable -Name otp_version -Option Constant -Value $Version
-    Write-Information "[INFO] Using provided version: $otp_version"
-}
-else
-{
-    # Auto-detect latest OTP-28.x version
-    try
-    {
-        $ProgressPreference = 'SilentlyContinue'
-        New-Variable -Name erlang_tags -Option Constant `
-            -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
-    }
-    finally
-    {
-        $ProgressPreference = 'Continue'
-    }
+New-Variable -Name otp_version -Option Constant -Value $Version
+Write-Information "[INFO] Building version: $otp_version"
 
-    New-Variable -Name latest_erlang_tag -Option Constant `
-        -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-28\.[0-9](\.[0-9](\.[0-9])?)?$' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
-
-    New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
-
-    New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-', '')
-
-    Write-Information "[INFO] otp_version: $otp_version, latest tag: $latest_erlang_tag_name"
-}
-
+# Fetch release information from GitHub
 New-Variable -Name erlang_release_uri -Option Constant `
-    -Value ("https://api.github.com/repos/erlang/otp/releases/tags/OTP-$otp_version")
+    -Value "https://api.github.com/repos/erlang/otp/releases/tags/OTP-$otp_version"
 
+Write-Information "[INFO] Fetching release information from GitHub..."
 try
 {
     $ProgressPreference = 'SilentlyContinue'
     New-Variable -Name erlang_json -Option Constant `
         -Value (Invoke-WebRequest -Uri $erlang_release_uri | ConvertFrom-Json)
+}
+catch
+{
+    Write-Error "Version OTP-$otp_version not found on GitHub. Please verify the version exists."
+    exit 1
 }
 finally
 {

@@ -193,4 +193,3 @@ if ($failedVersions.Count -gt 0)
 Write-Information ""
 Write-Information "All versions processed successfully!"
 exit 0
-

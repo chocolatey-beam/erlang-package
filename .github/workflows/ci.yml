@@ -1,4 +1,4 @@
-name: build-erlang-package
+name: sync-erlang-versions
 on:
   workflow_dispatch:
   schedule:
@@ -6,9 +6,9 @@ on:
 permissions:
   contents: read
 jobs:
-  build-package:
+  sync-versions:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - shell: pwsh
-        run: ${{ github.workspace }}\package.ps1 -Push -ApiKey ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: ${{ github.workspace }}\sync-versions.ps1 -ApiKey ${{ secrets.CHOCOLATEY_API_KEY }}
