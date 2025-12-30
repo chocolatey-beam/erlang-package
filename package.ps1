@@ -118,36 +118,36 @@ else
 
 try
 {
-  $ProgressPreference = 'SilentlyContinue'
-  New-Variable -Name erlang_tags -Option Constant `
-    -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
+    $ProgressPreference = 'SilentlyContinue'
+    New-Variable -Name erlang_tags -Option Constant `
+        -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
 }
 finally
 {
-  $ProgressPreference = 'Continue'
+    $ProgressPreference = 'Continue'
 }
 
 New-Variable -Name latest_erlang_tag -Option Constant `
-  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-28\.[0-9](\.[0-9](\.[0-9])?)?$' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
+    -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-28\.[0-9](\.[0-9](\.[0-9])?)?$' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
 
 New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
 
-New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-','')
+New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-', '')
 
 Write-Information "[INFO] otp_version: $otp_version, latest tag:" $latest_erlang_tag_name
 
 New-Variable -Name erlang_release_uri -Option Constant `
-  -Value ("https://api.github.com/repos/erlang/otp/releases/tags/" + $latest_erlang_tag.name)
+    -Value ("https://api.github.com/repos/erlang/otp/releases/tags/" + $latest_erlang_tag.name)
 
 try
 {
-  $ProgressPreference = 'SilentlyContinue'
-  New-Variable -Name erlang_json -Option Constant `
-    -Value (Invoke-WebRequest -Uri $erlang_release_uri | ConvertFrom-Json)
+    $ProgressPreference = 'SilentlyContinue'
+    New-Variable -Name erlang_json -Option Constant `
+        -Value (Invoke-WebRequest -Uri $erlang_release_uri | ConvertFrom-Json)
 }
 finally
 {
-  $ProgressPreference = 'Continue'
+    $ProgressPreference = 'Continue'
 }
 
 New-Variable -Name win32_installer_asset  -Option Constant `
@@ -181,7 +181,8 @@ if (!(Test-Path -Path $win64_installer_exe))
 try
 {
     $ProgressPreference = 'SilentlyContinue'
-    foreach ($file in $files) {
+    foreach ($file in $files)
+    {
         $jobs += Start-ThreadJob -Name $file.OutFile -ScriptBlock {
             $params = $using:file
             Invoke-WebRequest @params

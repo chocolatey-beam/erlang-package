@@ -11,6 +11,7 @@ best practices and don't have common issues.
 #>
 
 $packageRoot = Split-Path -Parent $PSCommandPath
+$settingsPath = Join-Path -Path $packageRoot -ChildPath 'PSScriptAnalyzerSettings.psd1'
 $filesToCheck = @(
     "$packageRoot\package.ps1"
     "$packageRoot\tools\chocolateyInstall.ps1.in"
@@ -24,7 +25,7 @@ foreach ($file in $filesToCheck)
     if (Test-Path -LiteralPath $file)
     {
         Write-Information "Analyzing $file ..." -InformationAction Continue
-        $results = Invoke-ScriptAnalyzer -Path $file -ExcludeRule @(
+        $results = Invoke-ScriptAnalyzer -Path $file -Settings $settingsPath -ExcludeRule @(
             'PSReviewUnusedParameter'  # False positive for parameters used in scriptblocks
         )
         if ($results)

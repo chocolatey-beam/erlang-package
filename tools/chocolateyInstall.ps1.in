@@ -13,16 +13,16 @@ $otp_version = '@@OTP_VERSION@@'
 $erts_version = '@@ERTS_VERSION@@'
 
 $params = @{
-  PackageName = $package
-  FileType = 'exe'
-  SilentArgs = '/S'
-  Url = "https://github.com/erlang/otp/releases/download/OTP-$otp_version/otp_win32_$otp_version.exe"
-  CheckSum = '@@WIN32_SHA256@@'
-  CheckSumType = 'sha256'
-  Url64 = "https://github.com/erlang/otp/releases/download/OTP-$otp_version/otp_win64_$otp_version.exe"
-  CheckSum64 = '@@WIN64_SHA256@@'
-  CheckSumType64 = 'sha256'
-  validExitCodes = @(0)
+    PackageName = $package
+    FileType = 'exe'
+    SilentArgs = '/S'
+    Url = "https://github.com/erlang/otp/releases/download/OTP-$otp_version/otp_win32_$otp_version.exe"
+    CheckSum = '@@WIN32_SHA256@@'
+    CheckSumType = 'sha256'
+    Url64 = "https://github.com/erlang/otp/releases/download/OTP-$otp_version/otp_win64_$otp_version.exe"
+    CheckSum64 = '@@WIN64_SHA256@@'
+    CheckSumType64 = 'sha256'
+    validExitCodes = @(0)
 }
 
 Install-ChocolateyPackage @params
