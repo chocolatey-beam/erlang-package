@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 An install script for installing Erlang silently on the machine via ChocolateyNuGet
 
