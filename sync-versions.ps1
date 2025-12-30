@@ -121,7 +121,7 @@ foreach ($line in $chocoOutput)
 Write-Information "Found $($publishedVersions.Count) published versions on chocolatey.org"
 
 # Find missing versions
-$missingVersions = $otpVersions | Where-Object { $_ -notin $publishedVersions }
+$missingVersions = @($otpVersions | Where-Object { $_ -notin $publishedVersions })
 
 Write-Information ""
 Write-Information "=== Gap Analysis ==="
@@ -161,10 +161,8 @@ foreach ($version in $missingVersions)
 
     try
     {
-        # TODO: Call package.ps1 for this version
-        # Need to modify package.ps1 to accept version parameter
         Write-Information "  Building and pushing version $version..."
-        # & .\package.ps1 -Version $version -Push -ApiKey $ApiKey
+        & "$PSScriptRoot\package.ps1" -Version $version -Push -SkipTest -ApiKey $ApiKey
 
         $processedCount++
         Write-Information "  SUCCESS: Version $version completed successfully"

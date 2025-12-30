@@ -24,17 +24,25 @@ Pass --verbose flag to choco commands for detailed logging.
 .PARAMETER ApiKey
 Chocolatey API key for publishing. Required when using -Push.
 
+.PARAMETER Version
+Specific OTP version to build (e.g., "27.3.4"). If not provided, automatically
+detects the latest OTP-28.x version from GitHub.
+
+.PARAMETER SkipTest
+Skip installation testing. Packages are built and pushed without local testing.
+Useful for batch processing where Erlang installers are known to be reliable.
+
 .EXAMPLE
 .\package.ps1
-Downloads installers and generates package files
+Downloads installers for latest OTP-28.x and generates package files
 
 .EXAMPLE
-.\package.ps1 -PackAndTest
-Builds and tests package locally
+.\package.ps1 -Version "27.3.4" -PackAndTest
+Builds and tests package for version 27.3.4
 
 .EXAMPLE
-.\package.ps1 -Push -ApiKey "your-api-key"
-Builds, tests, and publishes package to chocolatey.org
+.\package.ps1 -Version "26.2.5" -Push -ApiKey "your-api-key" -SkipTest
+Builds and publishes version 26.2.5 without testing
 #>
 
 param(
@@ -42,7 +50,9 @@ param(
     [switch]$Push = $false,
     [switch]$Debug = $false,
     [switch]$Verbose = $false,
-    [string]$ApiKey = $null
+    [string]$ApiKey = $null,
+    [string]$Version,
+    [switch]$SkipTest = $false
 )
 
 $InformationPreference = 'Continue'
@@ -116,28 +126,38 @@ else
     New-Variable -Name arg_verbose  -Option Constant -Value ''
 }
 
-try
+if ($Version)
 {
-    $ProgressPreference = 'SilentlyContinue'
-    New-Variable -Name erlang_tags -Option Constant `
-        -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
+    # Use provided version
+    New-Variable -Name otp_version -Option Constant -Value $Version
+    Write-Information "[INFO] Using provided version: $otp_version"
 }
-finally
+else
 {
-    $ProgressPreference = 'Continue'
+    # Auto-detect latest OTP-28.x version
+    try
+    {
+        $ProgressPreference = 'SilentlyContinue'
+        New-Variable -Name erlang_tags -Option Constant `
+            -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
+    }
+    finally
+    {
+        $ProgressPreference = 'Continue'
+    }
+
+    New-Variable -Name latest_erlang_tag -Option Constant `
+        -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-28\.[0-9](\.[0-9](\.[0-9])?)?$' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
+
+    New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
+
+    New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-', '')
+
+    Write-Information "[INFO] otp_version: $otp_version, latest tag: $latest_erlang_tag_name"
 }
-
-New-Variable -Name latest_erlang_tag -Option Constant `
-    -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-28\.[0-9](\.[0-9](\.[0-9])?)?$' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
-
-New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
-
-New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-', '')
-
-Write-Information "[INFO] otp_version: $otp_version, latest tag:" $latest_erlang_tag_name
 
 New-Variable -Name erlang_release_uri -Option Constant `
-    -Value ("https://api.github.com/repos/erlang/otp/releases/tags/" + $latest_erlang_tag.name)
+    -Value ("https://api.github.com/repos/erlang/otp/releases/tags/OTP-$otp_version")
 
 try
 {
@@ -163,7 +183,7 @@ $jobs = @()
 
 if (!(Test-Path -Path $win32_installer_exe))
 {
-    Write-Information "[INFO] downloading from " $win32_installer_asset.browser_download_url
+    Write-Information "[INFO] downloading from $($win32_installer_asset.browser_download_url)"
     $files += @{
         Uri = $win32_installer_asset.browser_download_url
         OutFile = $win32_installer_exe
@@ -171,7 +191,7 @@ if (!(Test-Path -Path $win32_installer_exe))
 }
 if (!(Test-Path -Path $win64_installer_exe))
 {
-    Write-Information "[INFO] downloading from " $win64_installer_asset.browser_download_url
+    Write-Information "[INFO] downloading from $($win64_installer_asset.browser_download_url)"
     $files += @{
         Uri = $win64_installer_asset.browser_download_url
         OutFile = $win64_installer_exe
@@ -272,7 +292,7 @@ New-Variable -Name chocolateyUninstallPs1 -Option Constant `
 
 (Get-Content -Raw -Path $chocolateyUninstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version) | Set-Content $chocolateyUninstallPs1
 
-if ($PackAndTest)
+if ($PackAndTest -or ($Push -and -not $SkipTest))
 {
     Invoke-CommandWithCheck -Command { choco.exe pack } -Description 'choco pack'
 
@@ -283,6 +303,10 @@ if ($PackAndTest)
     Write-Information "[INFO] choco un-installing Erlang..."
     & choco.exe uninstall erlang $arg_debug $arg_verbose --yes --source ".;https://chocolatey.org/api/v2/"
     Write-Information "[INFO] uninstallation complete!"
+}
+elseif ($Push -and $SkipTest)
+{
+    Invoke-CommandWithCheck -Command { choco.exe pack } -Description 'choco pack'
 }
 
 if ($Push)
