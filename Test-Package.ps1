@@ -14,6 +14,7 @@ $packageRoot = Split-Path -Parent $PSCommandPath
 $settingsPath = Join-Path -Path $packageRoot -ChildPath 'PSScriptAnalyzerSettings.psd1'
 $filesToCheck = @(
     "$packageRoot\package.ps1"
+    "$packageRoot\sync-versions.ps1"
     "$packageRoot\tools\chocolateyInstall.ps1.in"
     "$packageRoot\tools\chocolateyUninstall.ps1.in"
 )
