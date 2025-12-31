@@ -43,6 +43,8 @@ param(
     [ValidateRange(1, 99)]
     [int]$MinMajorVersion = 25,
     [string]$SpecificVersion,
+    [ValidateRange(1, 99)]
+    [int]$MaxMajorVersion = 99,
     [string]$ApiKey = $null
 )
 
@@ -51,12 +53,18 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 'Latest'
 
 # Validate parameters
+if ($MaxMajorVersion -lt $MinMajorVersion)
+{
+    Write-Error "MaxMajorVersion ($MaxMajorVersion) cannot be less than MinMajorVersion ($MinMajorVersion)"
+    exit 1
+}
+
 if ($SpecificVersion)
 {
     $specificMajor = [int]($SpecificVersion -split '\.')[0]
-    if ($specificMajor -lt $MinMajorVersion)
+    if ($specificMajor -lt $MinMajorVersion -or $specificMajor -gt $MaxMajorVersion)
     {
-        Write-Error "SpecificVersion ($SpecificVersion) has major version $specificMajor which is less than MinMajorVersion ($MinMajorVersion)"
+        Write-Error "SpecificVersion ($SpecificVersion) has major version $specificMajor which is outside the range $MinMajorVersion-$MaxMajorVersion"
         exit 1
     }
 }
@@ -68,7 +76,8 @@ if (-not $DryRun -and -not $ApiKey)
 }
 
 Write-Information "=== Erlang/OTP Version Sync ==="
-Write-Information "Min Major Version: $MinMajorVersion"
+$versionRangeMsg = if ($MaxMajorVersion -eq 99) { ">= $MinMajorVersion" } else { "$MinMajorVersion-$MaxMajorVersion" }
+Write-Information "Version Range: $versionRangeMsg"
 if ($SpecificVersion)
 {
     Write-Information "Specific Version: $SpecificVersion"
@@ -94,7 +103,7 @@ foreach ($line in $otpVersionsContent -split "`n")
         elseif ($matches[2]) { $version += ".$($matches[2])" }
         if ($matches[4]) { $version += ".$($matches[4])" }
 
-        if ($major -ge $MinMajorVersion)
+        if ($major -ge $MinMajorVersion -and $major -le $MaxMajorVersion)
         {
             if (-not $SpecificVersion -or $version -eq $SpecificVersion)
             {
@@ -104,7 +113,7 @@ foreach ($line in $otpVersionsContent -split "`n")
     }
 }
 
-Write-Information "Found $($otpVersions.Count) OTP versions >= $MinMajorVersion"
+Write-Information "Found $($otpVersions.Count) OTP versions in range $versionRangeMsg"
 
 # Query Chocolatey for published versions
 Write-Information "Querying chocolatey.org for published versions..."
