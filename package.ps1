@@ -43,10 +43,14 @@ param(
 
 $InformationPreference = 'Continue'
 
-if ($Push)
+if ($Push -and -not $SkipTest)
 {
     $PackAndTest = $true
     Write-Information "[INFO] PACKAGE WILL BE TESTED AND PUSHED"
+}
+elseif ($Push -and $SkipTest)
+{
+    Write-Information "[INFO] PACKAGE WILL BE PUSHED WITHOUT TESTING"
 }
 
 $InformationPreference = 'Continue'
@@ -259,10 +263,26 @@ New-Variable -Name chocolateyUninstallPs1 -Option Constant `
 
 (Get-Content -Raw -Path $chocolateyUninstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version) | Set-Content $chocolateyUninstallPs1
 
+# Pack the package and capture the output filename
+$packOutput = & choco.exe pack --limit-output
+if ($LASTEXITCODE -ne 0)
+{
+    throw "[ERROR] 'choco pack' failed!"
+}
+
+Write-Information "[INFO] 'choco pack' succeeded."
+
+# Extract filename from output like "Successfully created package 'D:\path\erlang.25.0.0.nupkg'"
+$nupkgPath = $packOutput | Select-String -Pattern "Successfully created package '(.+\.nupkg)'" | ForEach-Object { $_.Matches.Groups[1].Value }
+if (-not $nupkgPath)
+{
+    throw "Could not determine generated .nupkg filename from choco pack output"
+}
+
+Write-Information "[INFO] Generated package: $nupkgPath"
+
 if ($PackAndTest -or ($Push -and -not $SkipTest))
 {
-    Invoke-CommandWithCheck -Command { choco.exe pack } -Description 'choco pack'
-
     Invoke-CommandWithCheck -Command { choco.exe install erlang --version $otp_version --ignore-http-cache $arg_debug $arg_verbose --yes --skip-virus-check --source "." } -Description 'choco install'
 
     Invoke-CommandWithCheck -Command { & $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().' } -Description 'erl.exe check'
@@ -271,16 +291,13 @@ if ($PackAndTest -or ($Push -and -not $SkipTest))
     & choco.exe uninstall erlang --version $otp_version $arg_debug $arg_verbose --yes
     Write-Information "[INFO] uninstallation complete!"
 }
-elseif ($Push -and $SkipTest)
-{
-    Invoke-CommandWithCheck -Command { choco.exe pack } -Description 'choco pack'
-}
 
 if ($Push)
 {
     Invoke-CommandWithCheck -Command { choco.exe apikey --yes --key $ApiKey --source https://push.chocolatey.org/ } -Description 'choco apikey'
 
-    Invoke-CommandWithCheck -Command { choco.exe push erlang.$otp_version.nupkg --source https://push.chocolatey.org } -Description 'choco push'
+    Write-Information "[INFO] Pushing $nupkgPath..."
+    Invoke-CommandWithCheck -Command { choco.exe push $nupkgPath --source https://push.chocolatey.org } -Description 'choco push'
 }
 
 Set-PSDebug -Off
