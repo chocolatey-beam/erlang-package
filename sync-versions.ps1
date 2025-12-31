@@ -161,44 +161,20 @@ Write-Information ""
 Write-Information "=== Processing Missing Versions ==="
 
 $processedCount = 0
-$failedVersions = @()
 
 foreach ($version in $missingVersions)
 {
     Write-Information ""
     Write-Information "[$($processedCount + 1)/$($missingVersions.Count)] Processing version $version..."
 
-    try
-    {
-        Write-Information "  Building and pushing version $version..."
-        & "$PSScriptRoot\package.ps1" -Version $version -Push -SkipTest -ApiKey $ApiKey
+    Write-Information "  Building and pushing version $version..."
+    & "$PSScriptRoot\package.ps1" -Version $version -Push -SkipTest -ApiKey $ApiKey
 
-        $processedCount++
-        Write-Information "  SUCCESS: Version $version completed successfully"
-    }
-    catch
-    {
-        Write-Warning "  FAILED: Version $version failed: $_"
-        $failedVersions += $version
-    }
+    $processedCount++
+    Write-Information "  SUCCESS: Version $version completed successfully"
 }
 
 Write-Information ""
 Write-Information "=== Summary ==="
-Write-Information "Processed: $processedCount/$($missingVersions.Count)"
-Write-Information "Failed: $($failedVersions.Count)"
-
-if ($failedVersions.Count -gt 0)
-{
-    Write-Information ""
-    Write-Information "Failed versions:"
-    foreach ($version in $failedVersions)
-    {
-        Write-Information "  - $version"
-    }
-    exit 1
-}
-
-Write-Information ""
-Write-Information "All versions processed successfully!"
+Write-Information "All $processedCount versions processed successfully!"
 exit 0

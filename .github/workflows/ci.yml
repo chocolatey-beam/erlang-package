@@ -2,7 +2,7 @@ name: sync-erlang-versions
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 5 * * *'
+    - cron: '30 5 * * 0'  # Weekly on Sunday at 5:30 AM UTC
 permissions:
   contents: read
 jobs:
