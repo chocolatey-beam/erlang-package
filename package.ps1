@@ -49,7 +49,7 @@ if ($Push)
     Write-Information "[INFO] PACKAGE WILL BE TESTED AND PUSHED"
 }
 
-$DebugPreference = "Continue"
+$InformationPreference = 'Continue'
 $ErrorActionPreference = 'Stop'
 # Set-PSDebug -Strict -Trace 1
 Set-PSDebug -Off
@@ -263,12 +263,12 @@ if ($PackAndTest -or ($Push -and -not $SkipTest))
 {
     Invoke-CommandWithCheck -Command { choco.exe pack } -Description 'choco pack'
 
-    Invoke-CommandWithCheck -Command { choco.exe install erlang $arg_debug $arg_verbose --yes --skip-virus-check --source ".;https://chocolatey.org/api/v2/" } -Description 'choco install'
+    Invoke-CommandWithCheck -Command { choco.exe install erlang --version $otp_version --ignore-http-cache $arg_debug $arg_verbose --yes --skip-virus-check --source "." } -Description 'choco install'
 
     Invoke-CommandWithCheck -Command { & $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().' } -Description 'erl.exe check'
 
     Write-Information "[INFO] choco un-installing Erlang..."
-    & choco.exe uninstall erlang $arg_debug $arg_verbose --yes --source ".;https://chocolatey.org/api/v2/"
+    & choco.exe uninstall erlang --version $otp_version $arg_debug $arg_verbose --yes
     Write-Information "[INFO] uninstallation complete!"
 }
 elseif ($Push -and $SkipTest)
