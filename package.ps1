@@ -1,27 +1,105 @@
+#Requires -Version 7.0
+
+<#
+.SYNOPSIS
+Builds and optionally publishes Erlang/OTP Chocolatey package.
+
+.DESCRIPTION
+Downloads Erlang/OTP installers for a specific version, tests the installation,
+generates package files from templates, and optionally tests and publishes to
+chocolatey.org.
+
+.PARAMETER PackAndTest
+Build and test the package locally without pushing.
+
+.PARAMETER Push
+Test the package installation locally and push to chocolatey.org.
+
+.PARAMETER SkipTest
+Skip installation testing. Packages are built and pushed without local testing.
+Useful for batch processing where Erlang installers are known to be reliable.
+
+.EXAMPLE
+.\package.ps1 -Version "28.1.1"
+Downloads installers for version 28.1.1 and generates package files
+
+.EXAMPLE
+.\package.ps1 -Version "27.3.4" -PackAndTest -Verbose
+Builds and tests package for version 27.3.4 with verbose choco output
+
+.EXAMPLE
+.\package.ps1 -Version "26.2.5" -Push -ApiKey "your-api-key" -SkipTest
+Builds and publishes version 26.2.5 without testing
+#>
+[CmdletBinding()]
 param(
+    [Parameter(Mandatory = $true)]
+    [string]$Version,
     [switch]$PackAndTest = $false,
     [switch]$Push = $false,
-    [switch]$Debug = $false,
-    [switch]$Verbose = $false,
-    [string]$ApiKey = $null
+    [string]$ApiKey = $null,
+    [switch]$SkipTest = $false
 )
 
-if ($Push)
+$InformationPreference = 'Continue'
+
+if ($Push -and -not $SkipTest)
 {
     $PackAndTest = $true
-    Write-Host "[INFO] PACKAGE WILL BE TESTED AND PUSHED"
+    Write-Information "[INFO] PACKAGE WILL BE TESTED AND PUSHED"
+}
+elseif ($Push -and $SkipTest)
+{
+    Write-Information "[INFO] PACKAGE WILL BE PUSHED WITHOUT TESTING"
 }
 
-$DebugPreference = "Continue"
+$InformationPreference = 'Continue'
 $ErrorActionPreference = 'Stop'
 # Set-PSDebug -Strict -Trace 1
 Set-PSDebug -Off
 Set-StrictMode -Version 'Latest' -ErrorAction 'Stop' -Verbose
 
-New-Variable -Name curdir  -Option Constant -Value $PSScriptRoot
-Write-Host "[INFO] curdir: $curdir"
+function Join-PathMultiple
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Base,
+        [Parameter(Mandatory = $true)]
+        [string[]]$Parts
+    )
+    $result = $Base
+    foreach ($part in $Parts)
+    {
+        $result = Join-Path -Path $result -ChildPath $part
+    }
+    return $result
+}
 
-if ($Debug)
+function Invoke-CommandWithCheck
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [scriptblock]$Command,
+        [Parameter(Mandatory = $true)]
+        [string]$Description
+    )
+    & $Command
+    if ($LASTEXITCODE -eq 0)
+    {
+        Write-Information "[INFO] '$Description' succeeded."
+    }
+    else
+    {
+        throw "[ERROR] '$Description' failed!"
+    }
+}
+
+
+New-Variable -Name curdir  -Option Constant -Value $PSScriptRoot
+Write-Information "[INFO] curdir: $curdir"
+
+# Set choco arguments based on preference variables
+if ($DebugPreference -eq 'Continue')
 {
     New-Variable -Name arg_debug  -Option Constant -Value '--debug'
 }
@@ -30,7 +108,7 @@ else
     New-Variable -Name arg_debug  -Option Constant -Value ''
 }
 
-if ($Verbose)
+if ($VerbosePreference -eq 'Continue')
 {
     New-Variable -Name arg_verbose  -Option Constant -Value '--verbose'
 }
@@ -39,38 +117,28 @@ else
     New-Variable -Name arg_verbose  -Option Constant -Value ''
 }
 
-try
-{
-  $ProgressPreference = 'SilentlyContinue'
-  New-Variable -Name erlang_tags -Option Constant `
-    -Value (Invoke-WebRequest -Uri https://api.github.com/repos/erlang/otp/tags?per_page=100 | ConvertFrom-Json)
-}
-finally
-{
-  $ProgressPreference = 'Continue'
-}
+New-Variable -Name otp_version -Option Constant -Value $Version
+Write-Information "[INFO] Building version: $otp_version"
 
-New-Variable -Name latest_erlang_tag -Option Constant `
-  -Value ($erlang_tags | Where-Object { $_.name -match '^OTP-28\.[0-9](\.[0-9](\.[0-9])?)?$' } | Sort-Object -Descending { $_.name } | Select-Object -First 1)
-
-New-Variable -Name latest_erlang_tag_name -Option Constant -Value $latest_erlang_tag.name
-
-New-Variable -Name otp_version -Option Constant -Value ($latest_erlang_tag_name -replace '^OTP-','')
-
-Write-Host "[INFO] otp_version: $otp_version, latest tag:" $latest_erlang_tag_name
-
+# Fetch release information from GitHub
 New-Variable -Name erlang_release_uri -Option Constant `
-  -Value ("https://api.github.com/repos/erlang/otp/releases/tags/" + $latest_erlang_tag.name)
+    -Value "https://api.github.com/repos/erlang/otp/releases/tags/OTP-$otp_version"
 
+Write-Information "[INFO] Fetching release information from GitHub..."
 try
 {
-  $ProgressPreference = 'SilentlyContinue'
-  New-Variable -Name erlang_json -Option Constant `
-    -Value (Invoke-WebRequest -Uri $erlang_release_uri | ConvertFrom-Json)
+    $ProgressPreference = 'SilentlyContinue'
+    New-Variable -Name erlang_json -Option Constant `
+        -Value (Invoke-WebRequest -Uri $erlang_release_uri | ConvertFrom-Json)
+}
+catch
+{
+    Write-Error "Version OTP-$otp_version not found on GitHub. Please verify the version exists."
+    exit 1
 }
 finally
 {
-  $ProgressPreference = 'Continue'
+    $ProgressPreference = 'Continue'
 }
 
 New-Variable -Name win32_installer_asset  -Option Constant `
@@ -86,7 +154,7 @@ $jobs = @()
 
 if (!(Test-Path -Path $win32_installer_exe))
 {
-    Write-Host "[INFO] downloading from " $win32_installer_asset.browser_download_url
+    Write-Information "[INFO] downloading from $($win32_installer_asset.browser_download_url)"
     $files += @{
         Uri = $win32_installer_asset.browser_download_url
         OutFile = $win32_installer_exe
@@ -94,7 +162,7 @@ if (!(Test-Path -Path $win32_installer_exe))
 }
 if (!(Test-Path -Path $win64_installer_exe))
 {
-    Write-Host "[INFO] downloading from " $win64_installer_asset.browser_download_url
+    Write-Information "[INFO] downloading from $($win64_installer_asset.browser_download_url)"
     $files += @{
         Uri = $win64_installer_asset.browser_download_url
         OutFile = $win64_installer_exe
@@ -104,7 +172,8 @@ if (!(Test-Path -Path $win64_installer_exe))
 try
 {
     $ProgressPreference = 'SilentlyContinue'
-    foreach ($file in $files) {
+    foreach ($file in $files)
+    {
         $jobs += Start-ThreadJob -Name $file.OutFile -ScriptBlock {
             $params = $using:file
             Invoke-WebRequest @params
@@ -113,17 +182,17 @@ try
 
     if ($jobs.Count -gt 0)
     {
-        Write-Host "[INFO] Downloads started..."
+        Write-Information "[INFO] Downloads started..."
         Wait-Job -Job $jobs
         foreach ($job in $jobs)
         {
             Receive-Job -Job $job
         }
-        Write-Host "[INFO] Downloads complete!"
+        Write-Information "[INFO] Downloads complete!"
     }
     else
     {
-        Write-Host "[INFO] nothing to download!"
+        Write-Information "[INFO] nothing to download!"
     }
 }
 finally
@@ -136,25 +205,25 @@ New-Variable -Name win32_installer_exe_sha256 -Option Constant `
 New-Variable -Name win64_installer_exe_sha256 -Option Constant `
     -Value (Get-FileHash -Path $win64_installer_exe -Algorithm SHA256).Hash.ToLowerInvariant()
 
-Write-Host "[INFO] win32 installer sha256: $win32_installer_exe_sha256"
-Write-Host "[INFO] win64 installer sha256: $win64_installer_exe_sha256"
+Write-Information "[INFO] win32 installer sha256: $win32_installer_exe_sha256"
+Write-Information "[INFO] win64 installer sha256: $win64_installer_exe_sha256"
 
 # install
-Write-Host "[INFO] installing Erlang..."
+Write-Information "[INFO] installing Erlang..."
 Start-Process -Wait -FilePath $win64_installer_exe -ArgumentList '/S'
-Write-Host "[INFO] installation complete!"
+Write-Information "[INFO] installation complete!"
 
 New-Variable -Name erts_version -Option Constant `
     -Value (Get-ChildItem HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang | Select-Object -Last 1).PSChildName
-Write-Host "[INFO] erts_version: $erts_version"
+Write-Information "[INFO] erts_version: $erts_version"
 
 New-Variable -Name erlangProgramFilesPath -Option Constant `
     -Value ((Get-ItemProperty -Path HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erts_version).'(default)')
-Write-Host "[INFO] erlangProgramFilesPath: $erlangProgramFilesPath"
+Write-Information "[INFO] erlangProgramFilesPath: $erlangProgramFilesPath"
 
 New-Variable -Name erl_exe -Option Constant `
-    -Value (Join-Path -Path $erlangProgramFilesPath -ChildPath 'bin' | Join-Path -ChildPath 'erl.exe')
-Write-Host "[INFO] erl_exe: $erl_exe"
+    -Value (Join-PathMultiple -Base $erlangProgramFilesPath -Parts @('bin', 'erl.exe'))
+Write-Information "[INFO] erl_exe: $erl_exe"
 
 # run a check
 & $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().'
@@ -162,7 +231,7 @@ try
 {
     if ($LASTEXITCODE -eq 0)
     {
-        Write-Host "[INFO] erl.exe check succeeded."
+        Write-Information "[INFO] erl.exe check succeeded."
     }
     else
     {
@@ -171,92 +240,64 @@ try
 }
 finally
 {
-    Write-Host "[INFO] UN-installing Erlang..."
+    Write-Information "[INFO] UN-installing Erlang..."
     Start-Process -Wait -FilePath (Join-Path -Path $erlangProgramFilesPath -ChildPath 'uninstall.exe') -ArgumentList '/S'
-    Write-Host "[INFO] uninstallation complete!"
+    Write-Information "[INFO] uninstallation complete!"
 }
 
 (Get-Content -Raw -Path erlang.nuspec.in).Replace('@@OTP_VERSION@@', $otp_version) | Set-Content erlang.nuspec
 
 New-Variable -Name chocolateyInstallPs1In -Option Constant `
-    -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyInstall.ps1.in')
+    -Value (Join-PathMultiple -Base $curdir -Parts @('tools', 'chocolateyInstall.ps1.in'))
 
 New-Variable -Name chocolateyInstallPs1 -Option Constant `
-    -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyInstall.ps1')
+    -Value (Join-PathMultiple -Base $curdir -Parts @('tools', 'chocolateyInstall.ps1'))
 
 (Get-Content -Raw -Path $chocolateyInstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version).Replace('@@WIN32_SHA256@@', $win32_installer_exe_sha256).Replace('@@WIN64_SHA256@@', $win64_installer_exe_sha256) | Set-Content $chocolateyInstallPs1
 
 New-Variable -Name chocolateyUninstallPs1In -Option Constant `
-    -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyUninstall.ps1.in')
+    -Value (Join-PathMultiple -Base $curdir -Parts @('tools', 'chocolateyUninstall.ps1.in'))
 
 New-Variable -Name chocolateyUninstallPs1 -Option Constant `
-    -Value (Join-Path -Path $curdir -ChildPath 'tools' | Join-Path -ChildPath 'chocolateyUninstall.ps1')
+    -Value (Join-PathMultiple -Base $curdir -Parts @('tools', 'chocolateyUninstall.ps1'))
 
 (Get-Content -Raw -Path $chocolateyUninstallPs1In).Replace('@@OTP_VERSION@@', $otp_version).Replace('@@ERTS_VERSION@@', $erts_version) | Set-Content $chocolateyUninstallPs1
 
-if ($PackAndTest)
+# Pack the package and capture the output filename
+$packOutput = & choco.exe pack --limit-output
+if ($LASTEXITCODE -ne 0)
 {
-    & choco pack
-    if ($LASTEXITCODE -eq 0)
-    {
-        Write-Host "[INFO] 'choco pack' succeeded."
-    }
-    else
-    {
-        throw "[ERROR] 'choco pack' failed!"
-    }
+    throw "[ERROR] 'choco pack' failed!"
+}
 
-    & choco install erlang $arg_debug $arg_verbose --yes --skip-virus-check --source ".;https://chocolatey.org/api/v2/"
-    if ($LASTEXITCODE -eq 0)
-    {
-        Write-Host "[INFO] 'choco install' succeeded."
-    }
-    else
-    {
-        throw "[ERROR] 'choco install' failed!"
-    }
+Write-Information "[INFO] 'choco pack' succeeded."
 
-    & $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().'
-    try
-    {
-        if ($LASTEXITCODE -eq 0)
-        {
-            Write-Host "[INFO] erl.exe check succeeded."
-        }
-        else
-        {
-            throw "[ERROR] erl.exe check failed!"
-        }
-    }
-    finally
-    {
-        Write-Host "[INFO] choco un-installing Erlang..."
-        & choco uninstall erlang $arg_debug $arg_verbose --yes --source ".;https://chocolatey.org/api/v2/"
-        Write-Host "[INFO] uninstallation complete!"
-    }
+# Extract filename from output like "Successfully created package 'D:\path\erlang.25.0.0.nupkg'"
+$nupkgPath = $packOutput | Select-String -Pattern "Successfully created package '(.+\.nupkg)'" | ForEach-Object { $_.Matches.Groups[1].Value }
+if (-not $nupkgPath)
+{
+    throw "Could not determine generated .nupkg filename from choco pack output"
+}
+
+Write-Information "[INFO] Generated package: $nupkgPath"
+
+if ($PackAndTest -or ($Push -and -not $SkipTest))
+{
+    Invoke-CommandWithCheck -Command { choco.exe install erlang --version $otp_version --ignore-http-cache $arg_debug $arg_verbose --yes --skip-virus-check --source "." } -Description 'choco install'
+
+    Invoke-CommandWithCheck -Command { & $erl_exe -noninteractive -noshell -eval 'ok=crypto:start(),[{<<"OpenSSL">>,_,_}]=crypto:info_lib(),ok=init:stop().' } -Description 'erl.exe check'
+
+    Write-Information "[INFO] choco un-installing Erlang..."
+    & choco.exe uninstall erlang --version $otp_version $arg_debug $arg_verbose --yes
+    Write-Information "[INFO] uninstallation complete!"
 }
 
 if ($Push)
 {
-    & choco apikey --yes --key $ApiKey --source https://push.chocolatey.org/
-    if ($LASTEXITCODE -eq 0)
-    {
-        Write-Host "[INFO] 'choco apikey' succeeded."
-    }
-    else
-    {
-        throw "[ERROR] 'choco apikey' failed!"
-    }
+    Invoke-CommandWithCheck -Command { choco.exe apikey --yes --key $ApiKey --source https://push.chocolatey.org/ } -Description 'choco apikey'
 
-    & choco push erlang.$otp_version.nupkg --source https://push.chocolatey.org
-    if ($LASTEXITCODE -eq 0)
-    {
-        Write-Host "[INFO] 'choco push' succeeded."
-    }
-    else
-    {
-        throw "[ERROR] 'choco push' failed!"
-    }
+    Write-Information "[INFO] Pushing $nupkgPath..."
+    Invoke-CommandWithCheck -Command { choco.exe push $nupkgPath --source https://push.chocolatey.org } -Description 'choco push'
 }
 
 Set-PSDebug -Off
