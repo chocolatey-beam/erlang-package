@@ -45,7 +45,9 @@ param(
     [string]$SpecificVersion,
     [ValidateRange(1, 99)]
     [int]$MaxMajorVersion = 99,
-    [string]$ApiKey = $null
+    [string]$ApiKey = $null,
+    [ValidateRange(1, 100)]
+    [int]$MaxPushes = 10
 )
 
 $InformationPreference = 'Continue'
@@ -78,12 +80,23 @@ if (-not $DryRun -and -not $ApiKey)
 Write-Information "=== Erlang/OTP Version Sync ==="
 $versionRangeMsg = if ($MaxMajorVersion -eq 99) { ">= $MinMajorVersion" } else { "$MinMajorVersion-$MaxMajorVersion" }
 Write-Information "Version Range: $versionRangeMsg"
+Write-Information "Max Pushes Per Run: $MaxPushes"
 if ($SpecificVersion)
 {
     Write-Information "Specific Version: $SpecificVersion"
 }
 Write-Information "Dry Run: $DryRun"
 Write-Information ""
+
+# State file to track pushed versions
+$stateFile = Join-Path $PSScriptRoot 'sync-state.json'
+$pushedVersions = @()
+if (Test-Path $stateFile)
+{
+    $state = Get-Content $stateFile | ConvertFrom-Json
+    $pushedVersions = @($state.pushedVersions)
+    Write-Information "Loaded state: $($pushedVersions.Count) versions previously pushed"
+}
 
 # Fetch otp_versions.table
 Write-Information "Fetching otp_versions.table from GitHub..."
@@ -136,7 +149,7 @@ Write-Information "Found $($publishedVersions.Count) published versions on choco
 # - 25.1.2.1 stays 25.1.2.1
 $normalizedOtpVersions = $otpVersions | ForEach-Object {
     $v = [version]$_
-    
+
     # Build normalized version string based on which parts are present
     if ($v.Revision -ne -1)
     {
@@ -160,6 +173,12 @@ for ($i = 0; $i -lt $otpVersions.Count; $i++)
 {
     $otpVersion = $otpVersions[$i]
     $normalizedVersion = $normalizedOtpVersions[$i]
+
+    # Skip if already pushed in a previous run
+    if ($otpVersion -in $pushedVersions)
+    {
+        continue
+    }
 
     if ($normalizedVersion -notin $publishedVersions)
     {
@@ -194,22 +213,55 @@ if ($DryRun)
 # Process missing versions
 Write-Information ""
 Write-Information "=== Processing Missing Versions ==="
+Write-Information "Will process up to $MaxPushes versions in this run"
 
 $processedCount = 0
+$newlyPushed = @()
 
 foreach ($version in $missingVersions)
 {
+    if ($processedCount -ge $MaxPushes)
+    {
+        Write-Information ""
+        Write-Information "Reached maximum of $MaxPushes pushes for this run"
+        Write-Information "Remaining versions: $($missingVersions.Count - $processedCount)"
+        break
+    }
+
     Write-Information ""
-    Write-Information "[$($processedCount + 1)/$($missingVersions.Count)] Processing version $version..."
+    Write-Information "[$($processedCount + 1)/$MaxPushes] Processing version $version..."
 
     Write-Information "  Building and pushing version $version..."
     & "$PSScriptRoot\package.ps1" -Version $version -Push -SkipTest -ApiKey $ApiKey
 
     $processedCount++
+    $newlyPushed += $version
     Write-Information "  SUCCESS: Version $version completed successfully"
+}
+
+# Update state file with newly pushed versions
+if ($newlyPushed.Count -gt 0)
+{
+    $allPushed = @($pushedVersions) + @($newlyPushed)
+    $state = @{
+        pushedVersions = $allPushed
+        lastRun = (Get-Date).ToString('o')
+    }
+    $state | ConvertTo-Json | Set-Content $stateFile
+    Write-Information ""
+    Write-Information "State saved: $($allPushed.Count) total versions pushed"
 }
 
 Write-Information ""
 Write-Information "=== Summary ==="
-Write-Information "All $processedCount versions processed successfully!"
+Write-Information "Processed $processedCount versions in this run"
+if ($processedCount -lt $missingVersions.Count)
+{
+    Write-Information "Remaining: $($missingVersions.Count - $processedCount) versions"
+    Write-Information "Run again to continue processing"
+}
+else
+{
+    Write-Information "All missing versions processed!"
+}
 exit 0

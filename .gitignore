@@ -4,3 +4,4 @@ tools/chocolateyUninstall.ps1
 erlang.nuspec
 *.nupkg
 *.exe
+sync-state.json
